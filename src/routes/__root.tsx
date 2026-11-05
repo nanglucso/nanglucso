@@ -103,7 +103,7 @@ const THEME_SCRIPT = `try{var t=localStorage.getItem("nls-ai-theme-v1");var d=wi
 
 function RootShell({ children }: { children: ReactNode }) {
   return (
-    <html lang="vi">
+    <html lang="vi" suppressHydrationWarning>
       <head>
         <HeadContent />
         <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
