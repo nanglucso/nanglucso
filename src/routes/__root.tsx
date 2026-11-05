@@ -98,11 +98,15 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
   errorComponent: ErrorComponent,
 });
 
+/** Runs before first paint so a saved dark choice never flashes a white page. */
+const THEME_SCRIPT = `try{var t=localStorage.getItem("nls-ai-theme-v1");var d=window.matchMedia("(prefers-color-scheme: dark)").matches;var k=t==="dark"||((t===null||t==="system")&&d);document.documentElement.classList.toggle("dark",k);document.documentElement.style.colorScheme=k?"dark":"light";}catch(e){}`;
+
 function RootShell({ children }: { children: ReactNode }) {
   return (
     <html lang="vi">
       <head>
         <HeadContent />
+        <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
       </head>
       <body>
         {children}
