@@ -46,7 +46,7 @@ function App() {
       </header>
       <main className="mx-auto max-w-4xl px-4 py-6">
         {view === "home" && <HomeView store={store} go={setView} />}
-        {view === "study" && <StudyView store={store} list={QUESTIONS} storageKey="study-idx" />}
+        {view === "study" && <StudyHub store={store} />}
         {view === "search" && <SearchView />}
         {view === "exam" && <ExamView store={store} />}
         {view === "wrong" && <WrongView store={store} />}
@@ -178,18 +178,112 @@ function QHead({ q, idx, total }: { q: Question; idx: number; total: number }) {
   );
 }
 
+type Session = { idx: number; picks: Record<number, number> };
+const SESS_KEY = "nls-ai-sessions-v1";
+function loadSessions(): Record<string, Session> {
+  try { return JSON.parse(localStorage.getItem(SESS_KEY) || "{}"); } catch { return {}; }
+}
+function saveSession(key: string, s: Session | null) {
+  const all = loadSessions();
+  if (s) all[key] = s; else delete all[key];
+  localStorage.setItem(SESS_KEY, JSON.stringify(all));
+}
+const sessionList = (key: string) => (key === "all" ? QUESTIONS : QUESTIONS.filter((q) => `ch-${q.chapter}` === key));
+const sessionName = (key: string) => (key === "all" ? "Ôn toàn bộ 200 câu" : `Chương ${key.slice(3)} · ${CHAPTERS[+key.slice(3)]}`);
+
+function StudyHub({ store }: { store: Progress }) {
+  const [active, setActive] = useState<string | null>(null);
+  const [sessions, setSessions] = useState<Record<string, Session>>({});
+  useEffect(() => { if (!active) setSessions(loadSessions()); }, [active]);
+  const start = (key: string, fresh: boolean) => { if (fresh) saveSession(key, null); setActive(key); };
+  const drop = (key: string) => { saveSession(key, null); setSessions(loadSessions()); };
+
+  if (active)
+    return (
+      <div className="space-y-3">
+        <button onClick={() => setActive(null)} className="text-sm text-primary">← Chọn chương</button>
+        <p className="font-display text-lg font-bold">{sessionName(active)}</p>
+        <StudyView key={active} store={store} list={sessionList(active)} storageKey={active} />
+      </div>
+    );
+
+  const ans = store.progress.answered;
+  const keys = Object.keys(sessions).filter((k) => Object.keys(sessions[k]!.picks).length > 0);
+  return (
+    <div className="space-y-6">
+      {keys.length > 0 && (
+        <section className="space-y-3">
+          <h2 className="font-display text-xl font-bold">Làm tiếp từ lần trước</h2>
+          {keys.map((k) => {
+            const s = sessions[k]!; const list = sessionList(k);
+            const done = Object.keys(s.picks).length;
+            const right = list.filter((q) => s.picks[q.id] === q.a).length;
+            return (
+              <div key={k} className="rounded-2xl border bg-card p-4 shadow-soft">
+                <div className="mb-3 flex items-center justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="truncate font-semibold">{sessionName(k)}</p>
+                    <p className="text-sm text-muted-foreground">Đã làm {done}/{list.length} câu · đúng {right} · sai {done - right}</p>
+                  </div>
+                  <div className="flex shrink-0 gap-2">
+                    <button onClick={() => start(k, false)} className="rounded-xl bg-primary px-4 py-2 font-semibold text-primary-foreground">▶ Làm tiếp</button>
+                    <button onClick={() => drop(k)} className="rounded-xl border px-3 py-2 font-medium">Bỏ</button>
+                  </div>
+                </div>
+                <Bar value={(done / list.length) * 100} />
+              </div>
+            );
+          })}
+        </section>
+      )}
+      <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="rounded-2xl border bg-card p-5 shadow-soft">
+          <p className="text-xs font-bold uppercase tracking-widest text-accent">Ôn tổng hợp</p>
+          <h3 className="mt-2 font-semibold">Toàn bộ 200 câu theo thứ tự</h3>
+          <p className="mt-2 text-sm text-muted-foreground">Đã làm đúng {Object.values(ans).filter(Boolean).length} câu</p>
+          <ChapterButtons k="all" has={keys.includes("all")} start={start} label="Ôn tất cả" />
+        </div>
+        {Object.entries(CHAPTERS).map(([c, name]) => {
+          const qs = QUESTIONS.filter((q) => q.chapter === +c);
+          const right = qs.filter((q) => ans[q.id] === true).length;
+          const k = `ch-${c}`;
+          return (
+            <div key={c} className="rounded-2xl border bg-card p-5 shadow-soft">
+              <p className="text-xs font-bold uppercase tracking-widest text-accent">Chương {c}</p>
+              <h3 className="mt-2 font-semibold">{name}</h3>
+              <p className="mt-2 mb-2 text-sm text-muted-foreground">{qs.length} câu · đã làm đúng {right}</p>
+              <Bar value={(right / qs.length) * 100} />
+              <ChapterButtons k={k} has={keys.includes(k)} start={start} label={`Ôn chương ${c}`} />
+            </div>
+          );
+        })}
+      </section>
+    </div>
+  );
+}
+
+function ChapterButtons({ k, has, start, label }: { k: string; has: boolean; start: (k: string, fresh: boolean) => void; label: string }) {
+  return (
+    <div className="mt-4 flex flex-wrap gap-2">
+      <button onClick={() => (!has || confirm("Bắt đầu lại từ đầu? Phần đang làm dở sẽ bị xoá.")) && start(k, true)} className="rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground">{label}</button>
+      {has && <button onClick={() => start(k, false)} className="rounded-xl border px-4 py-2 text-sm font-medium">▶ Có phần ôn dở</button>}
+    </div>
+  );
+}
+
 function StudyView({ store, list, storageKey, onCorrect }: { store: Progress; list: Question[]; storageKey?: string; onCorrect?: (id: number) => void }) {
   const [idx, setIdx] = useState(0);
-  const [picks, setPicks] = useState<Record<number, number>>({});
+  const [picks, setPicksState] = useState<Record<number, number>>({});
   useEffect(() => {
     if (!storageKey) return;
-    const s = Number(localStorage.getItem(storageKey));
-    if (s > 0 && s < list.length) setIdx(s);
+    const s = loadSessions()[storageKey];
+    if (!s) return;
+    setPicksState(s.picks || {});
+    if (s.idx > 0 && s.idx < list.length) setIdx(s.idx);
   }, [storageKey, list.length]);
-  const move = (i: number) => {
-    setIdx(i);
-    if (storageKey) localStorage.setItem(storageKey, String(i));
-  };
+  const persist = (i: number, p: Record<number, number>) => storageKey && saveSession(storageKey, { idx: i, picks: p });
+  const setPicks = (p: Record<number, number>) => { setPicksState(p); persist(idx, p); };
+  const move = (i: number) => { setIdx(i); persist(i, picks); };
   const q = list[Math.min(idx, list.length - 1)];
   if (!q) return null;
   const picked = picks[q.id] ?? null;
