@@ -1,8 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import confetti from "canvas-confetti";
-import { BookOpen, Search, Timer, XCircle, Home, ChevronLeft, ChevronRight, RotateCcw, Trophy } from "lucide-react";
+import { BookOpen, Search, Timer, XCircle, Home, ChevronLeft, ChevronRight, RotateCcw, Trophy, Settings, Sun, Moon, MonitorSmartphone, Check } from "lucide-react";
 import { QUESTIONS, CHAPTERS, useProgress, normalize, shuffle, type Question } from "@/lib/quiz-store";
+import { useTheme, type Theme } from "@/lib/theme";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -30,6 +31,7 @@ const NAV: { v: View; label: string; icon: typeof Home }[] = [
 function App() {
   const [view, setView] = useState<View>("home");
   const store = useProgress();
+  const { theme, setTheme } = useTheme();
   return (
     <div className="min-h-screen pb-24 md:pb-10">
       <header className="sticky top-0 z-20 border-b bg-background/85 backdrop-blur">
@@ -42,6 +44,7 @@ function App() {
               <NavBtn key={n.v} n={n} active={view === n.v} onClick={() => setView(n.v)} badge={n.v === "wrong" ? store.progress.wrong.length : 0} />
             ))}
           </nav>
+          <ThemeMenu theme={theme} setTheme={setTheme} />
         </div>
       </header>
       <main className="mx-auto max-w-4xl px-4 py-6">
@@ -91,7 +94,7 @@ function HomeView({ store, go }: { store: Progress; go: (v: View) => void }) {
   const pct = Math.round((done / QUESTIONS.length) * 100);
   return (
     <div className="space-y-6">
-      <section className="bg-hero rounded-3xl p-6 text-primary-foreground shadow-soft md:p-10">
+      <section className="bg-hero rounded-3xl p-6 text-hero-fg shadow-soft md:p-10">
         <p className="text-sm uppercase tracking-widest opacity-80">Học kỳ 1 · 2026–2027</p>
         <h1 className="mt-2 font-display text-3xl font-bold leading-tight md:text-5xl">Năng lực số & ứng dụng trí tuệ nhân tạo</h1>
         <p className="mt-3 max-w-xl opacity-90">200 câu trắc nghiệm qua 6 chương. Ôn từng câu, tra cứu nhanh, thi thử có hẹn giờ và ôn lại những câu từng làm sai.</p>
