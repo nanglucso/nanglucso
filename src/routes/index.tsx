@@ -299,7 +299,7 @@ function ExamView({ store }: { store: Progress }) {
     );
 
   const correct = qs.filter((q) => ans[q.id] === q.a).length;
-  const q = qs[cur];
+  const q = qs[cur] as Question;
   const mm = String(Math.floor(left / 60)).padStart(2, "0");
   const ss = String(left % 60).padStart(2, "0");
 
