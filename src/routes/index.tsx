@@ -79,6 +79,72 @@ function NavBtn({ n, active, onClick, badge, mobile }: { n: (typeof NAV)[number]
   );
 }
 
+const THEME_OPTS: { v: Theme; label: string; icon: typeof Sun }[] = [
+  { v: "light", label: "Sáng", icon: Sun },
+  { v: "dark", label: "Tối", icon: Moon },
+  { v: "system", label: "Theo hệ thống", icon: MonitorSmartphone },
+];
+
+function ThemeMenu({ theme, setTheme }: { theme: Theme; setTheme: (t: Theme) => void }) {
+  const [open, setOpen] = useState(false);
+  const box = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const onDown = (e: MouseEvent) => {
+      if (box.current && !box.current.contains(e.target as Node)) setOpen(false);
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setOpen(false);
+    };
+    document.addEventListener("mousedown", onDown);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onDown);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [open]);
+
+  return (
+    <div className="relative" ref={box}>
+      <button
+        onClick={() => setOpen((o) => !o)}
+        aria-label="Cài đặt giao diện"
+        aria-haspopup="menu"
+        aria-expanded={open}
+        className={`flex h-9 w-9 items-center justify-center rounded-lg border bg-card transition-colors hover:bg-secondary ${open ? "border-primary text-primary" : "text-foreground"}`}
+      >
+        <Settings className="h-5 w-5" />
+      </button>
+      {open && (
+        <div role="menu" className="absolute right-0 z-30 mt-2 w-52 rounded-xl border bg-card p-1.5 shadow-soft">
+          <p className="px-2.5 pt-1.5 pb-1 text-xs font-semibold tracking-widest text-muted-foreground uppercase">Giao diện</p>
+          {THEME_OPTS.map((o) => {
+            const I = o.icon;
+            const on = theme === o.v;
+            return (
+              <button
+                key={o.v}
+                role="menuitemradio"
+                aria-checked={on}
+                onClick={() => {
+                  setTheme(o.v);
+                  setOpen(false);
+                }}
+                className={`flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm font-medium transition-colors ${on ? "bg-secondary text-primary" : "text-muted-foreground hover:bg-muted hover:text-foreground"}`}
+              >
+                <I className="h-4 w-4" />
+                {o.label}
+                {on && <Check className="ml-auto h-4 w-4" />}
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function Bar({ value }: { value: number }) {
   return (
     <div className="h-2.5 w-full overflow-hidden rounded-full bg-muted">
