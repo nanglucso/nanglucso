@@ -1,8 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import confetti from "canvas-confetti";
-import { BookOpen, Search, Timer, XCircle, Home, ChevronLeft, ChevronRight, RotateCcw, Trophy } from "lucide-react";
+import { BookOpen, Search, Timer, XCircle, Home, ChevronLeft, ChevronRight, RotateCcw, Trophy, Settings, Sun, Moon, MonitorSmartphone, Check } from "lucide-react";
 import { QUESTIONS, CHAPTERS, useProgress, normalize, shuffle, type Question } from "@/lib/quiz-store";
+import { useTheme, type Theme } from "@/lib/theme";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -30,6 +31,7 @@ const NAV: { v: View; label: string; icon: typeof Home }[] = [
 function App() {
   const [view, setView] = useState<View>("home");
   const store = useProgress();
+  const { theme, setTheme } = useTheme();
   return (
     <div className="min-h-screen pb-24 md:pb-10">
       <header className="sticky top-0 z-20 border-b bg-background/85 backdrop-blur">
@@ -42,6 +44,7 @@ function App() {
               <NavBtn key={n.v} n={n} active={view === n.v} onClick={() => setView(n.v)} badge={n.v === "wrong" ? store.progress.wrong.length : 0} />
             ))}
           </nav>
+          <ThemeMenu theme={theme} setTheme={setTheme} />
         </div>
       </header>
       <main className="mx-auto max-w-4xl px-4 py-6">
@@ -76,6 +79,72 @@ function NavBtn({ n, active, onClick, badge, mobile }: { n: (typeof NAV)[number]
   );
 }
 
+const THEME_OPTS: { v: Theme; label: string; icon: typeof Sun }[] = [
+  { v: "light", label: "Sáng", icon: Sun },
+  { v: "dark", label: "Tối", icon: Moon },
+  { v: "system", label: "Theo hệ thống", icon: MonitorSmartphone },
+];
+
+function ThemeMenu({ theme, setTheme }: { theme: Theme; setTheme: (t: Theme) => void }) {
+  const [open, setOpen] = useState(false);
+  const box = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const onDown = (e: MouseEvent) => {
+      if (box.current && !box.current.contains(e.target as Node)) setOpen(false);
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setOpen(false);
+    };
+    document.addEventListener("mousedown", onDown);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onDown);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [open]);
+
+  return (
+    <div className="relative" ref={box}>
+      <button
+        onClick={() => setOpen((o) => !o)}
+        aria-label="Cài đặt giao diện"
+        aria-haspopup="menu"
+        aria-expanded={open}
+        className={`flex h-9 w-9 items-center justify-center rounded-lg border bg-card transition-colors hover:bg-secondary ${open ? "border-primary text-primary" : "text-foreground"}`}
+      >
+        <Settings className="h-5 w-5" />
+      </button>
+      {open && (
+        <div role="menu" className="absolute right-0 z-30 mt-2 w-52 rounded-xl border bg-card p-1.5 shadow-soft">
+          <p className="px-2.5 pt-1.5 pb-1 text-xs font-semibold tracking-widest text-muted-foreground uppercase">Giao diện</p>
+          {THEME_OPTS.map((o) => {
+            const I = o.icon;
+            const on = theme === o.v;
+            return (
+              <button
+                key={o.v}
+                role="menuitemradio"
+                aria-checked={on}
+                onClick={() => {
+                  setTheme(o.v);
+                  setOpen(false);
+                }}
+                className={`flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm font-medium transition-colors ${on ? "bg-secondary text-primary" : "text-muted-foreground hover:bg-muted hover:text-foreground"}`}
+              >
+                <I className="h-4 w-4" />
+                {o.label}
+                {on && <Check className="ml-auto h-4 w-4" />}
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function Bar({ value }: { value: number }) {
   return (
     <div className="h-2.5 w-full overflow-hidden rounded-full bg-muted">
@@ -91,7 +160,7 @@ function HomeView({ store, go }: { store: Progress; go: (v: View) => void }) {
   const pct = Math.round((done / QUESTIONS.length) * 100);
   return (
     <div className="space-y-6">
-      <section className="bg-hero rounded-3xl p-6 text-primary-foreground shadow-soft md:p-10">
+      <section className="bg-hero rounded-3xl p-6 text-hero-fg shadow-soft md:p-10">
         <p className="text-sm uppercase tracking-widest opacity-80">Học kỳ 1 · 2026–2027</p>
         <h1 className="mt-2 font-display text-3xl font-bold leading-tight md:text-5xl">Năng lực số & ứng dụng trí tuệ nhân tạo</h1>
         <p className="mt-3 max-w-xl opacity-90">200 câu trắc nghiệm qua 6 chương. Ôn từng câu, tra cứu nhanh, thi thử có hẹn giờ và ôn lại những câu từng làm sai.</p>

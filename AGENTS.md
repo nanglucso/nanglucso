@@ -10,3 +10,4 @@
 <!-- LOVABLE:END -->
 
 - Quiz data lives in src/data/questions.json (field `a` = 0-based correct option); progress persists in localStorage via src/lib/quiz-store.ts — app has no backend by design.
+- Theming works by toggling the `.dark` class on `<html>` (src/lib/theme.ts); every colour must be a token defined in both `:root` and `.dark` in src/styles.css so dark mode stays styled, and the pre-paint script in the root shell restores the stored choice before first render.
