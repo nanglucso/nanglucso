@@ -4,6 +4,7 @@ import confetti from "canvas-confetti";
 import { BookOpen, Search, Timer, XCircle, Home, ChevronLeft, ChevronRight, RotateCcw, Trophy, Settings, Sun, Moon, MonitorSmartphone, Check } from "lucide-react";
 import { QUESTIONS, CHAPTERS, useProgress, normalize, shuffle, type Question } from "@/lib/quiz-store";
 import { useTheme, type Theme } from "@/lib/theme";
+import { SiteFooter } from "@/components/SiteFooter";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -54,6 +55,7 @@ function App() {
         {view === "exam" && <ExamView store={store} />}
         {view === "wrong" && <WrongView store={store} />}
       </main>
+      <SiteFooter />
       <nav className="fixed inset-x-0 bottom-0 z-20 flex justify-around border-t bg-card py-2 md:hidden">
         {NAV.map((n) => (
           <NavBtn key={n.v} n={n} active={view === n.v} onClick={() => setView(n.v)} badge={n.v === "wrong" ? store.progress.wrong.length : 0} mobile />
