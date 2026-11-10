@@ -51,6 +51,11 @@ export function normalize(s: string) {
   return s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/đ/g, "d");
 }
 
+/** Question order for a study session: kept as given, or shuffled when requested. */
+export function makeOrder(ids: number[], shuffled: boolean): number[] {
+  return shuffled ? shuffle(ids) : [...ids];
+}
+
 export function shuffle<T>(arr: T[]): T[] {
   const a = [...arr];
   for (let i = a.length - 1; i > 0; i--) {

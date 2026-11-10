@@ -50,6 +50,8 @@
   --font-sans: "Be Vietnam Pro", system-ui, sans-serif;
   --font-display: "Lora", Georgia, serif;
   --shadow-soft: var(--shadow-soft);
+  --shadow-lift: var(--shadow-lift);
+  --ease-spring: cubic-bezier(0.22, 1, 0.36, 1);
   --color-input: var(--input);
   --color-ring: var(--ring);
   --color-ring-offset-background: var(--background);
@@ -108,6 +110,7 @@
   --gradient-hero: linear-gradient(135deg, oklch(0.42 0.09 195), oklch(0.5 0.1 175));
   --hero-fg: oklch(0.98 0.01 85);
   --shadow-soft: 0 10px 30px -14px oklch(0.3 0.05 200 / 0.25);
+  --shadow-lift: 0 18px 40px -18px oklch(0.3 0.06 200 / 0.38);
 }
 
 .dark {
@@ -149,6 +152,7 @@
   --gradient-hero: linear-gradient(135deg, oklch(0.26 0.07 200), oklch(0.33 0.09 172));
   --hero-fg: oklch(0.96 0.01 85);
   --shadow-soft: 0 10px 30px -14px oklch(0 0 0 / 0.65);
+  --shadow-lift: 0 20px 44px -18px oklch(0 0 0 / 0.8);
 }
 
 @layer base {
@@ -159,7 +163,87 @@
   body {
     background-color: var(--color-background);
     color: var(--color-foreground);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Windows 11–style cursors: arrow everywhere, hand on anything clickable. */
+  html {
+    cursor: url("/cursors/arrow.svg") 4 3, default;
+  }
+  button:not(:disabled),
+  a[href],
+  select,
+  summary,
+  label:has(input, select),
+  [role="button"],
+  [role^="menuitem"],
+  [role="option"],
+  [role="tab"] {
+    cursor: url("/cursors/hand.svg") 12 3, pointer;
+  }
+  button:disabled {
+    cursor: not-allowed;
+  }
+  input:not([type="checkbox"], [type="radio"]),
+  textarea {
+    cursor: text;
+  }
+
+  ::selection {
+    background: color-mix(in oklab, var(--primary) 28%, transparent);
+  }
+}
+
+@theme {
+  --animate-rise: rise 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+  --animate-pop: pop 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+  --animate-shake: shake 0.42s cubic-bezier(0.36, 0.07, 0.19, 0.97);
+  --animate-tick: tick 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+  --animate-drift: drift 14s ease-in-out infinite alternate;
+
+  @keyframes rise {
+    from { opacity: 0; transform: translateY(14px) scale(0.985); filter: blur(4px); }
+    to { opacity: 1; transform: none; filter: none; }
+  }
+  @keyframes pop {
+    0% { transform: scale(1); }
+    40% { transform: scale(1.025); }
+    100% { transform: scale(1); }
+  }
+  @keyframes shake {
+    10%, 90% { transform: translateX(-1px); }
+    20%, 80% { transform: translateX(3px); }
+    30%, 50%, 70% { transform: translateX(-5px); }
+    40%, 60% { transform: translateX(5px); }
+  }
+  @keyframes tick {
+    from { opacity: 0; transform: translateY(-55%); filter: blur(2px); }
+    to { opacity: 1; transform: none; filter: none; }
+  }
+  @keyframes drift {
+    from { transform: translate3d(0, 0, 0) scale(1); }
+    to { transform: translate3d(-8%, 10%, 0) scale(1.15); }
   }
 }
 
 @utility bg-hero { background-image: var(--gradient-hero); }
+
+/* Soft light orb used for decoration inside the hero. */
+@utility hero-orb {
+  background: radial-gradient(circle, color-mix(in oklab, var(--hero-fg) 22%, transparent), transparent 65%);
+}
+
+/* Frosted panel on top of the hero gradient. */
+@utility glass {
+  background: color-mix(in oklab, var(--hero-fg) 12%, transparent);
+  border: 1px solid color-mix(in oklab, var(--hero-fg) 22%, transparent);
+  backdrop-filter: blur(10px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

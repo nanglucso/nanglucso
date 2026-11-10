@@ -1,7 +1,8 @@
 import { useState } from "react";
-import { Coffee, Copy, Check, Heart } from "lucide-react";
+import { Copy, Check, Heart } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import qrAsset from "@/assets/techcombank-qr.jpg.asset.json";
+import supportIcon from "@/assets/support-emoji.png";
 
 const ACCOUNT_NO = "19076711211011";
 const ACCOUNT_DISPLAY = "1907-6711-2110-11";
@@ -27,21 +28,18 @@ export function SiteFooter() {
   };
 
   return (
-    <footer className="mx-auto mt-8 flex max-w-4xl flex-col items-center gap-3 border-t px-4 pt-6 pb-4 text-sm text-muted-foreground sm:flex-row sm:justify-between">
-      <p>
-        By <span className="font-semibold text-foreground">Minh</span>
-      </p>
+    <footer className="mx-auto mt-10 flex max-w-4xl items-center justify-between gap-3 border-t px-4 pt-5 pb-4 text-sm text-muted-foreground">
       <Dialog>
         <DialogTrigger asChild>
-          <button className="inline-flex items-center gap-1.5 rounded-full border bg-card px-3 py-1.5 text-xs font-medium text-foreground transition-colors hover:bg-secondary">
-            <Coffee className="h-4 w-4 text-primary" />
-            Mời tác giả ly cà phê
+          <button className="group inline-flex items-center gap-2 rounded-full border bg-card py-1 pr-3.5 pl-1 text-xs font-medium text-foreground transition-all duration-300 ease-spring hover:-translate-y-0.5 hover:border-primary hover:shadow-lift active:scale-95">
+            <img src={supportIcon} alt="" width={26} height={26} className="h-[26px] w-[26px] transition-transform duration-500 ease-spring group-hover:-rotate-12 group-hover:scale-110" />
+            Ủng hộ quỹ thi lại
           </button>
         </DialogTrigger>
         <DialogContent className="max-h-[90vh] max-w-sm overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center justify-center gap-2 font-display">
-              <Coffee className="h-5 w-5 text-primary" /> Cảm ơn bạn!
+              <img src={supportIcon} alt="" className="h-8 w-8" /> Cảm ơn bạn!
             </DialogTitle>
             <DialogDescription className="text-center">
               Mỗi ly cà phê là động lực để mình tiếp tục cập nhật câu hỏi và làm ứng dụng tốt hơn. Chúc bạn ôn thi thật tốt <Heart className="inline h-3.5 w-3.5 text-destructive" />
@@ -76,6 +74,10 @@ export function SiteFooter() {
           </button>
         </DialogContent>
       </Dialog>
+      <p className="font-display text-[13px] italic tracking-wide text-muted-foreground">
+        By <span className="font-semibold text-foreground">Minh</span>
+        <span className="text-accent">.</span>
+      </p>
     </footer>
   );
 }
